@@ -10,6 +10,8 @@ void retardo(unsigned long int a);
 void choque (unsigned long int speed);
 void auto_fantastico(unsigned long int);
 void carrera (unsigned long int speed);
+void semaforo_de_carrera(unsigned long int speed);
+void sirena (unsigned long int speed);
 
 
 int main() {
@@ -24,8 +26,8 @@ int main() {
             printf("|1|. AUTO FANTASTICO\n");
             printf("|2|. CHOQUE\n");
             printf("|3|. LA CARRERA\n");
-            printf("|4| \n");
-            printf("|5|\n");
+            printf("|4|. SEMAFORO DE CARRERA\n");
+            printf("|5|. SIRENA\n");
             printf("|6|. SALIR\n");
             printf("Ingrese la opcion:");
             scanf("%d",&aux);
@@ -46,9 +48,13 @@ int main() {
                 system("pause");        
                 break;
             case 4:
+                printf("\tSEMAFORO DE CARRERA\n\n");
+                semaforo_de_carrera(speed);
                 system("pause");        
                 break;
             case 5:
+                printf("\tSIRENA\n\n");
+                sirena(speed);
                 system("pause");        
             case 6:
                 printf("Hasta la proxima\n");
@@ -145,6 +151,69 @@ void carrera (unsigned long int speed){
         for (int i = 0; i < 6; ++i) {
             printf("\t |LA CARRERA| \n\n");
             printf("Presione ESC para volver al menu principal\n\n");
+            printf("\tDelay: \t",speed); 
+            disp_binary(tabla[i]);
+            retardo(speed);
+            system("cls");
+
+        if ((speed - 5000000) > 1000000){
+            if(GetAsyncKeyState(VK_UP) & 0x0001){speed += 5000000;}
+            }
+            if(GetAsyncKeyState(VK_DOWN) & 0x0001){speed -= 5000000;}
+            if(GetAsyncKeyState(VK_ESCAPE) & 0x0001){return;}
+        }
+    }
+}
+
+void semaforo_de_carrera(unsigned long int speed){
+  unsigned int pos = 0x80;
+  while(1){
+    for (int i = 0; i < 3; ++i) {
+        printf("\t |SEMAFORO DE CARRERA|\n\n");
+        printf("Presione ESC para volver al menu principal\n\n");
+        printf("\tDelay: \t");(speed);
+        disp_binary(pos);
+        pos >>= 2;
+        pos+=0x80;
+        retardo(speed);
+        system("cls");
+
+    if ((speed - 5000000) > 1000000){
+            if(GetAsyncKeyState(VK_UP) & 0x0001){speed += 5000000;}
+        }
+        if(GetAsyncKeyState(VK_DOWN) & 0x0001){speed -= 5000000;}
+        if(GetAsyncKeyState(VK_ESCAPE) & 0x0001){return;}
+
+  }
+  pos = 0x80;
+    for (int i = 0; i < 8; ++i) {
+            printf("\t |SEMAFORO DE CARRERA|\n\n");
+            printf("Presione ESC para volver al menu principal\n\n");
+            printf("\tDelay: \t");(speed/4);
+            disp_binary(pos);
+            pos >>= 1;
+            pos+=0x80;
+            retardo(speed/4);
+            system("cls");
+
+        if ((speed - 5000000) > 250000){
+            if(GetAsyncKeyState(VK_UP) & 0x0001){speed += 5000000;}
+        }
+        if(GetAsyncKeyState(VK_DOWN) & 0x0001){speed -= 5000000;}
+        if(GetAsyncKeyState(VK_ESCAPE) & 0x0001){return;}
+    }
+    pos = 0x80;
+  }
+}
+
+void sirena (unsigned long int speed){
+    unsigned char tabla[] = {0xF0, 0xF};
+    
+    while(1){
+
+        for (int i = 0; i < 2; ++i) {
+            printf("\t |LA SIRENA| \n\n");
+            printf("Presione ESC para volver al menu principal\n\n");
             printf("\tDelay: \t");(speed); 
             disp_binary(tabla[i]);
             retardo(speed);
@@ -157,4 +226,5 @@ void carrera (unsigned long int speed){
             if(GetAsyncKeyState(VK_ESCAPE) & 0x0001){return;}
         }
     }
+
 }
