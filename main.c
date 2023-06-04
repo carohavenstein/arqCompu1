@@ -3,6 +3,9 @@
 #include <conio.h> 
 #include <Windows.h>
 
+#include <stdbool.h>
+#include <string.h>
+#include <termios.h>
 
 
 void disp_binary (unsigned char dato);
@@ -15,6 +18,27 @@ void sirena (unsigned long int speed);
 void ola_humana(unsigned long int speed);
 
 
+
+void tc_echo_off(){
+
+	struct termios term;
+	tcgetattr(1, &term);
+	term.c_lflag &= ~ECHO;
+	tcsetattr(1, TCSANOW, &term);
+
+}
+void tc_echo_on(){
+
+	struct termios term;
+	tcgetattr(1, &term);
+	term.c_lflag |= ECHO;
+	tcsetattr(1, TCSANOW, &term);
+
+}
+
+
+
+
 int main() {
 
     unsigned long int speedini = 150000000;
@@ -22,7 +46,73 @@ int main() {
     speed = speedini;
 
     int aux = 0;
-    do {    
+
+
+        //char arr[r][s] = ...
+    //r = size del arreglo
+    //s = cantidad maxima de caracteres que puede almacenar cada string
+
+    char users[][8] = {"mish\0", "igna\0", "caro\0"}; 
+    char passwords[][6] = {"miche\0", "igna1\0", "patos\0"};
+
+    /*
+        for (int i = 0; i < 3; i++) {
+            printf("%s\n", users[i]);
+        }
+
+        for (int j = 0; j < 3; j++) {
+            printf("%s\n", passwords[j]);
+        }
+    */
+   
+
+    char user[8];
+    char password[6];
+    int intentos = 0;
+    bool verif = false;
+
+    printf("Iniciar sesion:\n");
+    printf("Usuario:\n");
+    scanf("%s", user);
+    
+    do {
+        getchar(); //sino toma el enter de cuando terminas el usuario
+        tc_echo_off();
+        printf("Ingrese su password de 5 digitos:\n");
+        for (int j = 0; j < 6; j++) {
+            char c = getchar();
+            password[j] = c;
+            //putchar('*');
+            //fflush(stdout);
+        }
+        password[5] = 0;
+        //printf("%s", password);
+
+        for (int i = 0; i < 3; i++) {
+            //printf("comparando:%s con %s\n", users[i], user);
+            //printf("comparando:%s con %s\n", passwords[i], password);
+            if ((strcmp(users[i], user) + strcmp(passwords[i], password)) == 0) {
+                verif = true;
+                printf("Bienvenido al sistema\n");
+                break;
+            }
+        }
+        if (!verif) {
+            printf("Password no valida\n");
+            intentos++;
+        }
+
+    } while (intentos < 3 && verif == false);
+
+    tc_echo_on();
+
+    if (verif == false) {
+        printf("Abortando programa\n");
+    } else {
+
+        //el switch y eso
+
+            do {    
         printf("\t -----|MENU|----- \n");
             printf("|1|. AUTO FANTASTICO\n");
             printf("|2|. CHOQUE\n");
@@ -69,6 +159,9 @@ int main() {
         }
         system("cls");
     } while (aux != 6);
+    }
+
+
 
 
 }
