@@ -1,81 +1,79 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ncurses.h>
+#include <termios.h>
 //#include "EasyPIO.h"
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
-//ESC es 27
-
-
-void disp_binary(unsigned char dato);
+void disp_binary (unsigned char dato);
 void retardo(unsigned long int a);
-void choque(unsigned long int speed);
+
+void choque (unsigned long int speed);
 void auto_fantastico(unsigned long int);
-void sirena(unsigned long int speed);
+void sirena (unsigned long int speed);
 void tren(unsigned long int speed);
 
-//#include <termios.h>
-//void tc_echo_off();
-//void tc_echo_on();
+int controlSpeed(unsigned long int* speed, char c);
+void restoreTerminalMode();
+void setNonblockingTerminalMode();
+void tc_echo_off();
+void tc_echo_on();
 
-int main() {    
+int main() {
 
     unsigned long int speedini = 150000000;
     unsigned long int speed = 150000000;
     speed = speedini;
-    int aux = 0;
 
-    // char arr[r][s] = ...
-    // r = size del arreglo
-    // s = cantidad maxima de caracteres que puede almacenar cada string
-    char users[][8] = {"mish\0", "igna\0", "caro\0"};
+    int aux = 0;
+    
+    //char arr[r][s] = ...
+    //r = size del arreglo
+    //s = cantidad maxima de caracteres que puede almacenar cada string
+
+    char users[][8] = {"mish\0", "igna\0", "caro\0"}; 
     char passwords[][6] = {"miche\0", "igna1\0", "patos\0"};
 
-    /*
-        for (int i = 0; i < 3; i++) {
-            printf("%s\n", users[i]);
-        }
+        /*
+        
+            for (int i = 0; i < 3; i++) {
+                printf("%s\n", users[i]);
+            }
 
-        for (int j = 0; j < 3; j++) {
-            printf("%s\n", passwords[j]);
-        }
-    */
+            for (int j = 0; j < 3; j++) {
+                printf("%s\n", passwords[j]);
+            }
+        
+        */
 
     char user[8];
     char password[6];
     int intentos = 0;
     bool verif = false;
-
-    system("clear");
-
+    
     printf("Iniciar sesion:\n");
     printf("Usuario:\n");
     scanf("%s", user);
 
     do {
-        getchar(); // sino toma el enter de cuando terminas el usuario
-        initscr(); // inicia modo curses
-        noecho();
+        getchar(); //sino toma el enter de cuando terminas el usuario
+        tc_echo_off();
         printf("Ingrese su password de 5 digitos:\n");
         for (int j = 0; j < 6; j++) {
             char c = getchar();
             password[j] = c;
-            addch('*');
-            refresh();
-            // putchar('*');
-            // fflush(stdout);
+            //putchar('*');
+            //fflush(stdout);
         }
         password[5] = 0;
-        // printf("%s", password);
-        endwin(); //fin de ncurses
-        system("clear");
+        printf("%s", password);
 
         for (int i = 0; i < 3; i++) {
-            // printf("comparando:%s con %s\n", users[i], user);
-            // printf("comparando:%s con %s\n", passwords[i], password);
-            if ((strcmp(users[i], user) + strcmp(passwords[i], password)) == 0)
-            {
+            printf("comparando:%s con %s\n", users[i], user);
+            printf("comparando:%s con %s\n", passwords[i], password);
+            if ((strcmp(users[i], user) + strcmp(passwords[i], password)) == 0) {
                 verif = true;
                 printf("Bienvenido al sistema\n");
                 break;
@@ -88,14 +86,15 @@ int main() {
 
     } while (intentos < 3 && verif == false);
 
-    //tc_echo_on();
-    echo();
+    tc_echo_on();
 
-    if (verif == false){
+    if (verif == false) {
         printf("Abortando programa\n");
-    }
-    else {
+    } else {
+
         do {
+            restoreTerminalMode();
+            system("clear");
             printf("\t -----|MENU|----- \n");
             printf("|1|. AUTO FANTASTICO\n");
             printf("|2|. CHOQUE\n");
@@ -132,8 +131,30 @@ int main() {
                     system("clear");
                 }
         } while (aux != 5);
+        system("clear");
     }
-    endwin(); //fin de ncurses
+}
+
+    
+void setNonblockingTerminalMode() {
+    struct termios term;
+    tcgetattr(STDIN_FILENO, &term);
+    term.c_lflag &= ~(ICANON | ECHO);
+    term.c_cc[VTIME] = 0;
+    term.c_cc[VMIN] = 1;
+    tcsetattr(STDIN_FILENO, TCSANOW, &term);
+    setbuf(stdin, NULL);
+    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+}
+
+void restoreTerminalMode() {
+    struct termios term;
+    tcgetattr(STDIN_FILENO, &term);
+    term.c_lflag |= ICANON | ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &term);
+    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, flags & ~O_NONBLOCK);
 }
 
 void disp_binary(unsigned char dato){
@@ -153,203 +174,167 @@ void retardo(unsigned long int a){
     a--;
 }
 
+void choque (unsigned long int speed){
+    setNonblockingTerminalMode();
+    int running = 1;
+    char c;
 
-void choque(unsigned long int speed){
-    initscr(); // inicia modo curses
-    raw(); // para que no haya que apretar enter para que lea char
-    noecho();
-    keypad(stdscr, TRUE);
-    halfdelay(10); // espera 10 decimos de seg y si no hay input sigue
-    
     unsigned char tabla[] = {0x81, 0x42, 0x24, 0x18, 0x24, 0x42};
-    while (1) {
+    while(running){
 
         for (int i = 0; i < 6; ++i) {
             printf("\t |EL CHOQUE|\n\n");
-            printf("Presione ESC para volver al menu principal\n\n\n");
-            printf("\tDelay: %lu\t", speed);
+            printf("Presione E para volver al menu principal\n\n\n");
+            printf("\tDelay: %ld\t",speed);
             disp_binary(tabla[i]);
             retardo(speed);
             system("clear");
 
-            int ch = getch();
-        
-            if(ch == 27 & 0x0001) { //27 es ESC
-                endwin();
+            running = controlSpeed(&speed, c);
+            if (running == 0) {
                 return;
             }
-
         }
     }
 }
 
-
-
 void auto_fantastico(unsigned long int speed){
-    
-    initscr(); // inicia modo curses
-    raw(); // para que no haya que apretar enter para que lea char
-    noecho();
-    keypad(stdscr, TRUE);
-    halfdelay(10); // espera 10 decimos de seg y si no hay input sigue
-    
+    setNonblockingTerminalMode();
+    int running = 1;
+    char c;
+
     unsigned int pos = 0x80;
-    while (1) {
+    while(running){
         for (int i = 0; i < 8; ++i) {
-            printf("\t |AUTO FANTASICO|\n\n");
-            printf("Presione ESC para volver al menu principal\n\n");
-            printf("\tDelay: %lu\t", speed);
+            printf("\t |AUTO FANTASTICO|\n\n");
+            printf("Presione E para volver al menu principal\n\n");
+            printf("\tDelay: %ld\t",speed);
             disp_binary(pos);
             pos >>= 1;
             retardo(speed);
             system("clear");
-            
-            int ch = getch();
-            if ((speed - 5000000) > 1000000) {
-                if (ch == KEY_UP & 0x0001) {
-                    speed += 5000000;
-                }
-            }
-            if (ch == KEY_DOWN & 0x0001) {
-                speed -= 5000000;
-            }
-            if (ch == KEY_EXIT & 0x0001) {
-                endwin();
+
+            running = controlSpeed(&speed, c);
+            if (running == 0) {
                 return;
             }
+
         }
         pos = 0x02;
         for (int i = 0; i < 6; ++i) {
             printf("\t |AUTO FANTASTICO|\n\n");
-            printf("Presione ESC para volver al menu principal\n\n");
-            printf("\tDelay: %lu\t", speed);
+            printf("Presione E para volver al menu principal\n\n");
+            printf("\tDelay: %ld\t",speed);
             disp_binary(pos);
             pos <<= 1;
             retardo(speed);
             system("clear");
 
-            int ch = getch();
-            if ((speed - 5000000) > 1000000) {
-                
-                if (ch == KEY_UP & 0x0001) {
-                    speed += 5000000;
-                }
-            }
-            if (ch == KEY_DOWN & 0x0001) {
-                speed -= 5000000;
-            }
-            if (ch == 27 & 0x0001) {
-                endwin();
+            running = controlSpeed(&speed, c);
+            if (running == 0) {
                 return;
             }
+            
         }
     }
 }
 
+int controlSpeed(unsigned long int* speed, char c) {
+    ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
+    if (bytesRead > 0) {
+        if (c == 'e') {
+            return 0;
+        } else if (c == '\033') {
+            char arrow;
+            ssize_t arrowBytesRead = read(STDIN_FILENO, &arrow, 1);
 
-void sirena(unsigned long int speed) {
-    initscr(); // inicia modo curses
-    raw(); // para que no haya que apretar enter para que lea char
-    noecho();
-    keypad(stdscr, TRUE);
-    halfdelay(10); // espera 10 decimos de seg y si no hay input sigue
+            if (arrowBytesRead > 0 && arrow == '[') {
+                char direction;
+                ssize_t directionBytesRead = read(STDIN_FILENO, &direction, 1);
+                    
+                if (directionBytesRead > 0) {
+                    if (direction == 'A') {
+                        //printf("Tecla presionada: Flecha hacia arriba\n");
+                        if ((*speed - 5000000) > 1000000){*speed += 5000000;}
+                    } else if (direction == 'B') {
+                        //printf("Tecla presionada: Flecha hacia abajo\n");
+                        *speed -= 5000000;
+                    }
+                }
+            }
+        }
+    }    
+}
+
+void sirena (unsigned long int speed){
+    setNonblockingTerminalMode();
+    int running = 1;
+    char c;
+
     unsigned char tabla[] = {0xF0, 0xF};
-
-    while (1) {
+    
+    while(running){
 
         for (int i = 0; i < 2; ++i) {
-            printf("\t |LA SIRENA| \n\n");
-            printf("Presione ESC para volver al menu principal\n\n");
-            printf("\tDelay: %lu\t", speed);
+            printf("\t |SIRENA| \n\n");
+            printf("Presione E para volver al menu principal\n\n");
+            printf("\tDelay: %ld\t",speed); 
             disp_binary(tabla[i]);
             retardo(speed);
             system("clear");
 
-            int ch = getch();
-            if ((speed - 5000000) > 1000000) {
-                
-                if (ch == KEY_UP & 0x0001) {
-                    speed += 5000000;
-                }
-            }
-            if (ch == KEY_DOWN & 0x0001) {
-                speed -= 5000000;
-            }
-            if (ch == 27 & 0x0001) {
-                endwin();
+            running = controlSpeed(&speed, c);
+            if (running == 0) {
                 return;
             }
-
-        
         }
     }
+
 }
 
-void tren(unsigned long int speed) {
-    initscr(); // inicia modo curses
-    raw(); // para que no haya que apretar enter para que lea char
-    noecho();
-    keypad(stdscr, TRUE);
-    halfdelay(10); // espera 10 decimos de seg y si no hay input sigue
-    while (1){
+void tren(unsigned long int speed){
+    setNonblockingTerminalMode();
+    int running = 1;
+    char c;
+
+    while(running){
 
         unsigned int pos = 0xE0;
-        for (int i = 0; i < 8; ++i){
-            printf("\t|OLA HUMANA|\n\n");
-            printf("Presione ESC para volver al menu principal\n\n");
-            printf("\tDelay: %lu\t", speed);
+        for (int i = 0; i < 8; ++i) {
+            printf("\t|TREN|\n\n");
+            printf("Presione E para volver al menu principal\n\n");
+            printf("\tDelay: %ld\t",speed);
             disp_binary(pos);
             pos >>= 1;
             retardo(speed);
             system("clear");
 
-            int ch = getch();
-            if ((speed - 5000000) > 1000000) {
-                
-                if (ch == KEY_UP & 0x0001) {
-                    speed += 5000000;
-                }
-            }
-            if (ch == KEY_DOWN & 0x0001) {
-                speed -= 5000000;
-            }
-            if (ch == 27 & 0x0001) {
-                endwin();
+            running = controlSpeed(&speed, c);
+            if (running == 0) {
                 return;
             }
 
         }
-
+    
         pos = 0xE0;
-        for (int i = 6; i < 0; ++i){
-            printf("\t|OLA HUMANA|\n\n");
-            printf("Presione ESC para volver al menu principal\n\n");
-            printf("\tDelay: %lu\t", speed);
+        for (int i = 6; i < 0; ++i) {
+            printf("\t|TREN|\n\n");
+            printf("Presione E para volver al menu principal\n\n");
+            printf("\tDelay: %ld\t",speed);
             disp_binary(pos);
             pos <<= 1;
             retardo(speed);
             system("clear");
 
-            int ch = getch();
-            if ((speed - 5000000) > 1000000) {
-                
-                if (ch == KEY_UP & 0x0001) {
-                    speed += 5000000;
-                }
-            }
-            if (ch == KEY_DOWN & 0x0001) {
-                speed -= 5000000;
-            }
-            if (ch == 27 & 0x0001) {
-                endwin();
+            running = controlSpeed(&speed, c);
+            if (running == 0) {
                 return;
             }
-
         }
     }
+    
 }
 
-/*
 
 void tc_echo_off() {
     struct termios term;
@@ -364,5 +349,3 @@ void tc_echo_on() {
     term.c_lflag |= ECHO;
     tcsetattr(1, TCSANOW, &term);
 }
-
-*/
