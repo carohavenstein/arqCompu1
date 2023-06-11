@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
-//#include "EasyPIO.h"
+#include "EasyPIO.h"
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
@@ -22,11 +22,15 @@ void setNonblockingTerminalMode();
 void tc_echo_off();
 void tc_echo_on();
 
+void configPines();
+void leds(unsigned int num);
+
+//Pines 14,15,18,23,24,25,8,7 deben conectarse con los 8 leds
+const char led[] = {14,15,18,23,24,25,8,7};
+
 int main() {
 
-    unsigned long int speedini = 150000000;
     unsigned long int speed = 150000000;
-    speed = speedini;
 
     int aux = 0;
     
@@ -106,7 +110,9 @@ int main() {
     if (verif == false) {
         printf("Abortando programa\n");
     } else {
-        printf("Llego al switch\n");
+        
+        //pioInit();
+        //configPines();
         
         do {
             restoreTerminalMode();
@@ -204,6 +210,7 @@ void choque (unsigned long int speed){
             printf("\t |EL CHOQUE|\n\n");
             printf("Presione E para volver al menu principal\n\n\n");
             printf("\tDelay: %ld\t",speed);
+            leds(tabla[i]);
             disp_binary(tabla[i]);
             retardo(speed);
             system("clear");
@@ -227,6 +234,7 @@ void auto_fantastico(unsigned long int speed){
             printf("\t |AUTO FANTASTICO|\n\n");
             printf("Presione E para volver al menu principal\n\n");
             printf("\tDelay: %ld\t",speed);
+            leds(pos);
             disp_binary(pos);
             pos >>= 1;
             retardo(speed);
@@ -243,6 +251,7 @@ void auto_fantastico(unsigned long int speed){
             printf("\t |AUTO FANTASTICO|\n\n");
             printf("Presione E para volver al menu principal\n\n");
             printf("\tDelay: %ld\t",speed);
+            leds(pos);
             disp_binary(pos);
             pos <<= 1;
             retardo(speed);
@@ -297,6 +306,7 @@ void sirena (unsigned long int speed){
             printf("\t |SIRENA| \n\n");
             printf("Presione E para volver al menu principal\n\n");
             printf("\tDelay: %ld\t",speed); 
+            leds(tabla[i]);
             disp_binary(tabla[i]);
             retardo(speed);
             system("clear");
@@ -322,6 +332,7 @@ void tren(unsigned long int speed){
             printf("\t|TREN|\n\n");
             printf("Presione E para volver al menu principal\n\n");
             printf("\tDelay: %ld\t",speed);
+            leds(pos);
             disp_binary(pos);
             pos >>= 1;
             retardo(speed);
@@ -339,6 +350,7 @@ void tren(unsigned long int speed){
             printf("\t|TREN|\n\n");
             printf("Presione E para volver al menu principal\n\n");
             printf("\tDelay: %ld\t",speed);
+            leds(pos);
             disp_binary(pos);
             pos <<= 1;
             retardo(speed);
@@ -365,4 +377,21 @@ void tc_echo_on() {
     tcgetattr(1, &term);
     term.c_lflag |= ECHO;
     tcsetattr(1, TCSANOW, &term);
+}
+
+void configPines() {
+    for (int i = 0; i < 8; i++) {
+        pinMode(led[i], OUTPUT);
+    }
+}
+
+void leds(unsigned int num) {
+    int valor;
+
+    for (int i = 0; i < 8; i++) {
+        //pasarle el numero a los 8 leds
+        valor = (num >> i) & 0x01;
+        digitalWrite(led[i], valor);
+
+    }
 }
