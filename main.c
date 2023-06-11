@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ncurses.h>
 
 void disp_binary (unsigned char dato);
 void retardo(unsigned long int a);
@@ -61,15 +62,22 @@ int main() {
     do {
         //printf("passs antes: %s\n", password);
         tc_echo_off();
-        printf("Ingrese su password de 5 digitos:\n");
+        
+        initscr();
+        printw("Ingrese su password de 5 digitos:\n");
+        refresh();
         for (int j = 0; j < 6; j++) {
             char c = getchar();
             password[j] = c;
+            addch('*');
+            refresh();
             //putchar('*');
             //fflush(stdout);
         }
         password[5] = 0;
         //printf("pass post: %s\n", password);
+        
+        system("clear");
 
         for (int i = 0; i < 3; i++) {
             //printf("comparando:%s con %s\n", users[i], user);
@@ -77,25 +85,29 @@ int main() {
             //printf("verif: %d\n", verif);
             if ((strcmp(users[i], user) + strcmp(passwords[i], password)) == 0) {
                 verif = true;
-                printf("Bienvenido al sistema\n");
+                printw("Bienvenido al sistema\n");
+                refresh();
                 //printf("verif: %d\n", verif);
                 break;
             }
         }
         if (!verif) {
-            printf("Password no valida\n");
+            printw("Password no valida\n");
+            refresh();
             intentos++;
         }
 
     } while (intentos < 3 && verif == false);
-
+    
+    endwin();
     tc_echo_on();
+    system("clear");
 
     if (verif == false) {
         printf("Abortando programa\n");
     } else {
         printf("Llego al switch\n");
-        /*
+        
         do {
             restoreTerminalMode();
             system("clear");
@@ -136,8 +148,9 @@ int main() {
                 }
         } while (aux != 5);
         system("clear");
-        */
+        
     }
+    restoreTerminalMode();
 }
 
     
@@ -339,7 +352,6 @@ void tren(unsigned long int speed){
     }
     
 }
-
 
 void tc_echo_off() {
     struct termios term;
