@@ -57,8 +57,9 @@ int main() {
     printf("Usuario:\n");
     scanf("%s", user);
 
+    getchar(); //sino toma el enter de cuando terminas el usuario
     do {
-        getchar(); //sino toma el enter de cuando terminas el usuario
+        //printf("passs antes: %s\n", password);
         tc_echo_off();
         printf("Ingrese su password de 5 digitos:\n");
         for (int j = 0; j < 6; j++) {
@@ -68,14 +69,16 @@ int main() {
             //fflush(stdout);
         }
         password[5] = 0;
-        printf("%s", password);
+        //printf("pass post: %s\n", password);
 
         for (int i = 0; i < 3; i++) {
-            printf("comparando:%s con %s\n", users[i], user);
-            printf("comparando:%s con %s\n", passwords[i], password);
+            //printf("comparando:%s con %s\n", users[i], user);
+            //printf("comparando:%s con %s\n", passwords[i], password);
+            //printf("verif: %d\n", verif);
             if ((strcmp(users[i], user) + strcmp(passwords[i], password)) == 0) {
                 verif = true;
                 printf("Bienvenido al sistema\n");
+                //printf("verif: %d\n", verif);
                 break;
             }
         }
@@ -91,7 +94,8 @@ int main() {
     if (verif == false) {
         printf("Abortando programa\n");
     } else {
-
+        printf("Llego al switch\n");
+        /*
         do {
             restoreTerminalMode();
             system("clear");
@@ -132,6 +136,7 @@ int main() {
                 }
         } while (aux != 5);
         system("clear");
+        */
     }
 }
 
