@@ -26,7 +26,7 @@ salida:
 
 
 .data tabla:
-      .byte 0xF0, 0x0f
+      .byte 0xF0, 0x0F
 .end
 
 
