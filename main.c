@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
-#include "EasyPIO.h"
+//#include "EasyPIO.h"
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
@@ -16,14 +16,14 @@ void auto_fantastico(unsigned long int);
 void sirena (unsigned long int speed);
 void tren(unsigned long int speed);
 
-int controlSpeed(unsigned long int* speed, char c);
+int controlSpeed(unsigned long int* speed);
 void restoreTerminalMode();
 void setNonblockingTerminalMode();
 void tc_echo_off();
 void tc_echo_on();
 
-void configPines();
-void leds(unsigned int num);
+//void configPines();
+//void leds(unsigned int num);
 
 //Pines 14,15,18,23,24,25,8,7 deben conectarse con los 8 leds
 const char led[] = {14,15,18,23,24,25,8,7};
@@ -41,18 +41,6 @@ int main() {
     char users[][8] = {"mish\0", "igna\0", "caro\0"}; 
     char passwords[][6] = {"miche\0", "igna1\0", "patos\0"};
 
-        /*
-        
-            for (int i = 0; i < 3; i++) {
-                printf("%s\n", users[i]);
-            }
-
-            for (int j = 0; j < 3; j++) {
-                printf("%s\n", passwords[j]);
-            }
-        
-        */
-
     char user[8];
     char password[6];
     int intentos = 0;
@@ -64,7 +52,6 @@ int main() {
 
     getchar(); //sino toma el enter de cuando terminas el usuario
     do {
-        //printf("passs antes: %s\n", password);
         tc_echo_off();
         
         initscr();
@@ -75,23 +62,16 @@ int main() {
             password[j] = c;
             addch('*');
             refresh();
-            //putchar('*');
-            //fflush(stdout);
         }
-        password[5] = 0;
-        //printf("pass post: %s\n", password);
-        
+        password[5] = 0;        
         system("clear");
 
         for (int i = 0; i < 3; i++) {
-            //printf("comparando:%s con %s\n", users[i], user);
-            //printf("comparando:%s con %s\n", passwords[i], password);
-            //printf("verif: %d\n", verif);
+    
             if ((strcmp(users[i], user) + strcmp(passwords[i], password)) == 0) {
                 verif = true;
                 printw("Bienvenido al sistema\n");
                 refresh();
-                //printf("verif: %d\n", verif);
                 break;
             }
         }
@@ -201,7 +181,6 @@ void retardo(unsigned long int a){
 void choque (unsigned long int speed){
     setNonblockingTerminalMode();
     int running = 1;
-    char c;
 
     unsigned char tabla[] = {0x81, 0x42, 0x24, 0x18, 0x24, 0x42};
     while(running){
@@ -210,12 +189,12 @@ void choque (unsigned long int speed){
             printf("\t |EL CHOQUE|\n\n");
             printf("Presione E para volver al menu principal\n\n\n");
             printf("\tDelay: %ld\t",speed);
-            leds(tabla[i]);
+            //leds(tabla[i]);
             disp_binary(tabla[i]);
             retardo(speed);
             system("clear");
 
-            running = controlSpeed(&speed, c);
+            running = controlSpeed(&speed);
             if (running == 0) {
                 return;
             }
@@ -226,7 +205,6 @@ void choque (unsigned long int speed){
 void auto_fantastico(unsigned long int speed){
     setNonblockingTerminalMode();
     int running = 1;
-    char c;
 
     unsigned int pos = 0x80;
     while(running){
@@ -234,13 +212,13 @@ void auto_fantastico(unsigned long int speed){
             printf("\t |AUTO FANTASTICO|\n\n");
             printf("Presione E para volver al menu principal\n\n");
             printf("\tDelay: %ld\t",speed);
-            leds(pos);
+            //leds(pos);
             disp_binary(pos);
             pos >>= 1;
             retardo(speed);
             system("clear");
 
-            running = controlSpeed(&speed, c);
+            running = controlSpeed(&speed);
             if (running == 0) {
                 return;
             }
@@ -251,13 +229,13 @@ void auto_fantastico(unsigned long int speed){
             printf("\t |AUTO FANTASTICO|\n\n");
             printf("Presione E para volver al menu principal\n\n");
             printf("\tDelay: %ld\t",speed);
-            leds(pos);
+            //leds(pos);
             disp_binary(pos);
             pos <<= 1;
             retardo(speed);
             system("clear");
 
-            running = controlSpeed(&speed, c);
+            running = controlSpeed(&speed);
             if (running == 0) {
                 return;
             }
@@ -266,7 +244,8 @@ void auto_fantastico(unsigned long int speed){
     }
 }
 
-int controlSpeed(unsigned long int* speed, char c) {
+int controlSpeed(unsigned long int* speed) {
+    char c;
     ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
     if (bytesRead > 0) {
         if (c == 'e') {
@@ -296,7 +275,6 @@ int controlSpeed(unsigned long int* speed, char c) {
 void sirena (unsigned long int speed){
     setNonblockingTerminalMode();
     int running = 1;
-    char c;
 
     unsigned char tabla[] = {0xF0, 0xF};
     
@@ -306,12 +284,12 @@ void sirena (unsigned long int speed){
             printf("\t |SIRENA| \n\n");
             printf("Presione E para volver al menu principal\n\n");
             printf("\tDelay: %ld\t",speed); 
-            leds(tabla[i]);
+            //leds(tabla[i]);
             disp_binary(tabla[i]);
             retardo(speed);
             system("clear");
 
-            running = controlSpeed(&speed, c);
+            running = controlSpeed(&speed);
             if (running == 0) {
                 return;
             }
@@ -323,7 +301,6 @@ void sirena (unsigned long int speed){
 void tren(unsigned long int speed){
     setNonblockingTerminalMode();
     int running = 1;
-    char c;
 
     while(running){
 
@@ -332,35 +309,19 @@ void tren(unsigned long int speed){
             printf("\t|TREN|\n\n");
             printf("Presione E para volver al menu principal\n\n");
             printf("\tDelay: %ld\t",speed);
-            leds(pos);
+            //leds(pos);
             disp_binary(pos);
             pos >>= 1;
             retardo(speed);
             system("clear");
 
-            running = controlSpeed(&speed, c);
+            running = controlSpeed(&speed);
             if (running == 0) {
                 return;
             }
 
         }
-    
-        pos = 0xE0;
-        for (int i = 6; i < 0; ++i) {
-            printf("\t|TREN|\n\n");
-            printf("Presione E para volver al menu principal\n\n");
-            printf("\tDelay: %ld\t",speed);
-            leds(pos);
-            disp_binary(pos);
-            pos <<= 1;
-            retardo(speed);
-            system("clear");
 
-            running = controlSpeed(&speed, c);
-            if (running == 0) {
-                return;
-            }
-        }
     }
     
 }
@@ -378,13 +339,13 @@ void tc_echo_on() {
     term.c_lflag |= ECHO;
     tcsetattr(1, TCSANOW, &term);
 }
+/*
 
 void configPines() {
     for (int i = 0; i < 8; i++) {
         pinMode(led[i], OUTPUT);
     }
 }
-
 void leds(unsigned int num) {
     int valor;
 
@@ -395,3 +356,5 @@ void leds(unsigned int num) {
 
     }
 }
+
+*/
