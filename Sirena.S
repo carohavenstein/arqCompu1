@@ -12,7 +12,7 @@ loop:
 inner_loop:
     bl disp_binary          @ Llama a la función disp_binary
     bl retardo              @ Llama a la función retardo
-    bl system               @ Llama a la función system con el argumento "cls"
+    bl system               @ Llama a la función system con el argumento "clear"
 
     add r3, #1              @ Incrementa el contador del bucle interno
     cmp r3, r2              @ Compara el contador con el valor del bucle externo
