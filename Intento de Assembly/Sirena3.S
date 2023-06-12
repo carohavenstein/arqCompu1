@@ -17,7 +17,7 @@ loop:
     BL disp_binary ; Llamada a la función mostrar
     MOV R0, speed
     BL retardo ; Llamada a la función retardo y guarda el resultado en R0
-    MOV speed, R0 ; Actualiza el valor de DELAY con el resultado del retardo
+    MOV speed, R0 ; Actualiza el valor de speed con el resultado del retardo
     CMP speed, #0
     BEQ salida
     BNE loop
